@@ -45,6 +45,7 @@ class IntegrationUpdateEntity(IntegrationBaseEntity, UpdateEntity):
         super().__init__(hass, entity_description, coordinator, device_type, item_id)
         self._install_pending = False
         self._pending_version: str | None = None
+        self._firmware_url: str | None = None
 
     @property
     def in_progress(self) -> bool:
@@ -55,7 +56,7 @@ class IntegrationUpdateEntity(IntegrationBaseEntity, UpdateEntity):
     ) -> None:
         del backup
         del kwargs
-        if not self.release_url:
+        if not self._firmware_url:
             raise ValueError("EdgeOS did not provide a firmware download URL")
 
         self._install_pending = True
@@ -63,7 +64,7 @@ class IntegrationUpdateEntity(IntegrationBaseEntity, UpdateEntity):
         self.async_write_ha_state()
 
         try:
-            await self.coordinator.async_install_firmware(self.release_url)
+            await self.coordinator.async_install_firmware(self._firmware_url)
         except Exception:
             _LOGGER.exception("EdgeOS firmware upgrade request failed")
             self.async_write_ha_state()
@@ -75,6 +76,7 @@ class IntegrationUpdateEntity(IntegrationBaseEntity, UpdateEntity):
         self._attr_installed_version = attributes.get("installed_version")
         self._attr_latest_version = attributes.get("latest_version")
         self._attr_release_url = attributes.get("release_url")
+        self._firmware_url = attributes.get("firmware_url")
 
         if (
             self._install_pending
