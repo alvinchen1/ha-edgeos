@@ -28,6 +28,10 @@ class APIValidationException(HomeAssistantError):
         self.status = status
 
 
+class FirmwareUpgradeError(HomeAssistantError):
+    """The router rejected or could not process a firmware upgrade request."""
+
+
 class IncompatibleVersion(HomeAssistantError):
     def __init__(self, version):
         self._version = version
