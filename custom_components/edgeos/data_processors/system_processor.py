@@ -127,6 +127,7 @@ class SystemProcessor(BaseProcessor):
             )
             system_data.upgrade_url = fw_latest_url
             system_data.upgrade_version = fw_latest_version
+            system_data.fw_version = system_info_section.get(SYSTEM_INFO_DATA_SW_VER)
 
             system_data.sw_version = sw_latest
 
@@ -157,7 +158,9 @@ class SystemProcessor(BaseProcessor):
 
             system_data = self._system
 
-            system_data.fw_version = discovery_data.get(DISCOVER_DATA_FW_VERSION)
+            discovered_fw_version = discovery_data.get(DISCOVER_DATA_FW_VERSION)
+            if discovered_fw_version is not None:
+                system_data.fw_version = discovered_fw_version
             system_data.product = discovery_data.get(DISCOVER_DATA_PRODUCT)
 
             uptime = float(system_stats_data.get(SYSTEM_STATS_DATA_UPTIME, 0))
