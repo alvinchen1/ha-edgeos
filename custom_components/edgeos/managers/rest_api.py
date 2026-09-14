@@ -255,7 +255,13 @@ class RestAPI:
 
         return headers
 
-    async def _async_post(self, endpoint, data, action: str | None = None):
+    async def _async_post(
+        self,
+        endpoint,
+        data,
+        action: str | None = None,
+        raise_errors: bool = False,
+    ):
         result = None
 
         try:
@@ -263,6 +269,7 @@ class RestAPI:
 
             if self._session is not None:
                 headers = self._get_post_headers()
+                headers["Content-Type"] = "application/json"
                 data_json = json.dumps(data)
 
                 async with self._session.post(
@@ -278,6 +285,8 @@ class RestAPI:
 
             message = f"Endpoint: {endpoint}, Error: {ex}, Line: {line_number}"
             _LOGGER.warning(f"Request failed, {message}")
+            if raise_errors:
+                raise FirmwareUpgradeError(message) from ex
 
         return result
 
@@ -548,6 +557,7 @@ class RestAPI:
             API_URL_UPGRADE,
             {"url": url},
             action=API_URL_ACTION_URL_UPGRADE,
+            raise_errors=True,
         )
         response = result or {}
         success = str(response.get(RESPONSE_SUCCESS_KEY, "")).lower()
