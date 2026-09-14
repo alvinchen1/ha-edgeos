@@ -356,6 +356,9 @@ class Coordinator(DataUpdateCoordinator):
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}")
 
+    async def async_install_firmware(self, url: str) -> None:
+        await self._api.async_install_firmware(url)
+
     def _build_data_mapping(self):
         _LOGGER.debug("Building data mappers")
 
@@ -522,6 +525,9 @@ class Coordinator(DataUpdateCoordinator):
             ATTR_ATTRIBUTES: {
                 SYSTEM_INFO_DATA_FW_LATEST_URL: data.upgrade_url,
                 SYSTEM_INFO_DATA_FW_LATEST_VERSION: data.upgrade_version,
+                "installed_version": data.fw_version,
+                "latest_version": data.upgrade_version,
+                "release_url": data.upgrade_url,
             },
         }
 

@@ -37,6 +37,11 @@
         "name": "Status"
       }
     },
+    "update": {
+      "firmware": {
+        "name": "Firmwareoppdatering"
+      }
+    },
     "device_tracker": {
       "device_tracker": {
         "name": "Status"

@@ -9,7 +9,6 @@ import sys
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_START
 from homeassistant.core import HomeAssistant
-
 from .common.consts import DEFAULT_NAME, DOMAIN
 from .common.entity_descriptions import PLATFORMS
 from .managers.config_manager import ConfigManager

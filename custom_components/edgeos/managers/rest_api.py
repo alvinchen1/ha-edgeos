@@ -29,11 +29,13 @@ from ..common.consts import (
     API_SET,
     API_URL_DATA,
     API_URL_DATA_SUBSET,
+    API_URL_ACTION_URL_UPGRADE,
     API_URL_HEARTBEAT,
     API_URL_PARAMETER_ACTION,
     API_URL_PARAMETER_BASE_URL,
     API_URL_PARAMETER_SUBSET,
     API_URL_PARAMETER_TIMESTAMP,
+    API_URL_UPGRADE,
     COOKIE_BEAKER_SESSION_ID,
     COOKIE_CSRF_TOKEN,
     COOKIE_PHPSESSID,
@@ -56,7 +58,7 @@ from ..common.consts import (
 )
 from ..models.config_data import ConfigData
 from ..models.edge_os_interface_data import EdgeOSInterfaceData
-from ..models.exceptions import SessionTerminatedException
+from ..models.exceptions import FirmwareUpgradeError, SessionTerminatedException
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -253,7 +255,13 @@ class RestAPI:
 
         return headers
 
-    async def _async_post(self, endpoint, data, action: str | None = None):
+    async def _async_post(
+        self,
+        endpoint,
+        data,
+        action: str | None = None,
+        raise_errors: bool = False,
+    ):
         result = None
 
         try:
@@ -261,6 +269,7 @@ class RestAPI:
 
             if self._session is not None:
                 headers = self._get_post_headers()
+                headers["Content-Type"] = "application/json"
                 data_json = json.dumps(data)
 
                 async with self._session.post(
@@ -276,6 +285,8 @@ class RestAPI:
 
             message = f"Endpoint: {endpoint}, Error: {ex}, Line: {line_number}"
             _LOGGER.warning(f"Request failed, {message}")
+            if raise_errors:
+                raise FirmwareUpgradeError(message) from ex
 
         return result
 
@@ -538,4 +549,22 @@ class RestAPI:
         if not modified:
             _LOGGER.error(
                 f"Failed to set state of interface {interface.name} to {is_enabled}"
+            )
+
+    async def async_install_firmware(self, url: str) -> None:
+        """Request an EdgeOS URL firmware upgrade using the authenticated session."""
+        result = await self._async_post(
+            API_URL_UPGRADE,
+            {"url": url},
+            action=API_URL_ACTION_URL_UPGRADE,
+            raise_errors=True,
+        )
+        response = result or {}
+        success = str(response.get(RESPONSE_SUCCESS_KEY, "")).lower()
+        if success not in {"1", TRUE_STR}:
+            error = response.get(
+                RESPONSE_ERROR_KEY, "EdgeOS rejected the firmware upgrade"
+            )
+            raise FirmwareUpgradeError(
+                f"EdgeOS firmware upgrade request failed: {error}"
             )

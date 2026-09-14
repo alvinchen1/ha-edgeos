@@ -66,6 +66,11 @@
         "name": "Status"
       }
     },
+    "update": {
+      "firmware": {
+        "name": "Firmware Update"
+      }
+    },
     "number": {
       "consider_away_interval": {
         "name": "Consider Away Interval"
