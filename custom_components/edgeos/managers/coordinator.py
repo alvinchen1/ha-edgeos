@@ -33,7 +33,7 @@ from ..common.consts import (
     ENTITY_CONFIG_ENTRY_ID,
     HA_NAME,
     HEARTBEAT_INTERVAL,
-    RELEASE_NOTES_URL,
+    RELEASES_URL,
     SIGNAL_API_STATUS,
     SIGNAL_DATA_CHANGED,
     SIGNAL_DEVICE_ADDED,
@@ -524,7 +524,7 @@ class Coordinator(DataUpdateCoordinator):
             ATTR_ATTRIBUTES: {
                 "installed_version": data.fw_version,
                 "latest_version": data.upgrade_version,
-                "release_url": RELEASE_NOTES_URL,
+                "release_url": data.upgrade_release_url or RELEASES_URL,
                 "firmware_url": data.upgrade_url,
             },
         }
