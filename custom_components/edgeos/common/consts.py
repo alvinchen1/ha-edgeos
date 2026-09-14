@@ -22,7 +22,10 @@ HA_NAME = "homeassistant"
 DOMAIN = "edgeos"
 DEFAULT_NAME = "EdgeOS"
 MANUFACTURER = "Ubiquiti"
-RELEASE_NOTES_URL = "https://community.ui.com/releases/EdgeOS/"
+RELEASE_NOTES_URL = (
+    "https://community.ui.com/releases/EdgeRouter-3-0-1/"
+    "7fe6b39d-baea-4ce6-87a0-5dcdc9538c3a"
+)
 
 STORAGE_DATA_KEY = "key"
 
