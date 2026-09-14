@@ -402,6 +402,19 @@ class Coordinator(DataUpdateCoordinator):
 
         device_info = processor.get_device_info(item_id)
 
+        if entity_description.device_type != DeviceTypes.SYSTEM:
+            system_device_info = self._system_processor.get_device_info()
+            system_identifiers = system_device_info.get("identifiers")
+            if system_identifiers:
+                system_device_id = dr.async_get_device_id_by_identifier(
+                    self.hass,
+                    next(iter(system_identifiers)),
+                    config_entry_id=self._config_manager.entry_id,
+                )
+
+                if system_device_id is not None:
+                    device_info["via_device_id"] = system_device_id
+
         return device_info
 
     def get_data(
