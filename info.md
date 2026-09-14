@@ -67,12 +67,12 @@ _Configuration -> Integrations -> {Integration} -> Options_ <br />
 
 ## Components
 
-### Breaking change: firmware entity
+### Firmware updates
 
-The firmware binary sensor is now an admin-only Update entity. Existing entity
-registry entries are migrated automatically. A reboot or disconnect after
-acceptance is treated as indeterminate until a refresh confirms the installed
-firmware version.
+The existing firmware binary sensor remains available, and an admin-only
+standard Update entity is also provided for installing the firmware URL reported
+by the router. A reboot or disconnect after acceptance is treated as
+indeterminate until a refresh confirms the installed firmware version.
 
 ### System
 

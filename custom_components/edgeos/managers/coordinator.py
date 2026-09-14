@@ -40,6 +40,8 @@ from ..common.consts import (
     SIGNAL_SYSTEM_ADDED,
     SIGNAL_WS_STATUS,
     SUPPORTED_REMOVED_ENTITIES_DEVICE_TYPES,
+    SYSTEM_INFO_DATA_FW_LATEST_URL,
+    SYSTEM_INFO_DATA_FW_LATEST_VERSION,
     WS_RECONNECT_INTERVAL,
 )
 from ..common.entity_descriptions import PLATFORMS, IntegrationEntityDescription
@@ -521,6 +523,8 @@ class Coordinator(DataUpdateCoordinator):
         result = {
             ATTR_IS_ON: data.upgrade_available,
             ATTR_ATTRIBUTES: {
+                SYSTEM_INFO_DATA_FW_LATEST_URL: data.upgrade_url,
+                SYSTEM_INFO_DATA_FW_LATEST_VERSION: data.upgrade_version,
                 "installed_version": data.fw_version,
                 "latest_version": data.upgrade_version,
                 "release_url": data.upgrade_url,
