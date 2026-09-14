@@ -8,6 +8,7 @@ from ..common.consts import (
     API_DATA_DHCP_STATS,
     API_DATA_SYS_INFO,
     API_DATA_SYSTEM,
+    API_DATA_RELEASE_URL,
     DATA_SYSTEM_SYSTEM,
     DEFAULT_NAME,
     DHCP_SERVER_LEASED,
@@ -121,9 +122,9 @@ class SystemProcessor(BaseProcessor):
             fw_latest_state = fw_latest.get(SYSTEM_INFO_DATA_FW_LATEST_STATE)
             fw_latest_version = fw_latest.get(SYSTEM_INFO_DATA_FW_LATEST_VERSION)
             fw_latest_url = fw_latest.get(SYSTEM_INFO_DATA_FW_LATEST_URL)
-            fw_release_url = fw_latest.get("release_url") or fw_latest.get(
-                "release-url"
-            )
+            fw_release_url = self._api_data.get(API_DATA_RELEASE_URL) or fw_latest.get(
+                "release_url"
+            ) or fw_latest.get("release-url")
 
             system_data.upgrade_available = (
                 fw_latest_state == FW_LATEST_STATE_CAN_UPGRADE

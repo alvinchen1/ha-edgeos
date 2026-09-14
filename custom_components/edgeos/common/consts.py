@@ -23,6 +23,10 @@ DOMAIN = "edgeos"
 DEFAULT_NAME = "EdgeOS"
 MANUFACTURER = "Ubiquiti"
 RELEASES_URL = "https://community.ui.com/releases"
+RELEASES_RSS_URL = (
+    "https://community.ui.com/rss/releases/EdgeRouter/"
+    "449d1a25-b4a2-454f-a5da-4e3744118c5d"
+)
 
 STORAGE_DATA_KEY = "key"
 
@@ -96,6 +100,7 @@ API_DATA_SYSTEM = "system"
 API_DATA_INTERFACES = "interfaces"
 API_DATA_SESSION_ID = "session-id"
 API_DATA_COOKIES = "cookies"
+API_DATA_RELEASE_URL = "release-url"
 
 API_DATA_SAVE = "SAVE"
 

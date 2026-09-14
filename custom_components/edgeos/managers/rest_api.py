@@ -6,6 +6,7 @@ import json
 import logging
 import sys
 from typing import Any
+from xml.etree import ElementTree
 
 from aiohttp import ClientSession, CookieJar
 
@@ -21,6 +22,7 @@ from ..common.consts import (
     API_DATA_INTERFACES,
     API_DATA_LAST_UPDATE,
     API_DATA_PRODUCT,
+    API_DATA_RELEASE_URL,
     API_DATA_SAVE,
     API_DATA_SESSION_ID,
     API_DATA_SYSTEM,
@@ -44,6 +46,7 @@ from ..common.consts import (
     HEADER_CSRF_TOKEN,
     HEARTBEAT_MAX_AGE,
     MAXIMUM_RECONNECT,
+    RELEASES_RSS_URL,
     RESPONSE_ERROR_KEY,
     RESPONSE_FAILURE_CODE,
     RESPONSE_OUTPUT,
@@ -111,6 +114,25 @@ class RestAPI:
         result = self._session is not None
 
         return result
+
+    async def _load_release_url(self) -> None:
+        """Load the latest EdgeRouter release announcement from Ubiquiti RSS."""
+        try:
+            if self._session is None:
+                return
+
+            async with self._session.get(RELEASES_RSS_URL, ssl=False) as response:
+                response.raise_for_status()
+                rss_data = await response.text()
+
+            root = ElementTree.fromstring(rss_data)
+            release_link = root.find("./channel/item/link")
+            if release_link is not None and release_link.text:
+                self.data[API_DATA_RELEASE_URL] = release_link.text.strip()
+            else:
+                _LOGGER.warning("Ubiquiti release RSS did not contain an item link")
+        except Exception as ex:
+            _LOGGER.warning("Failed to load Ubiquiti release RSS: %s", ex)
 
     @property
     def status(self) -> str | None:
@@ -289,6 +311,7 @@ class RestAPI:
 
         if self.status == ConnectivityStatus.Connected:
             await self._load_system_data()
+            await self._load_release_url()
 
             for endpoint in UPDATE_DATE_ENDPOINTS:
                 await self._load_general_data(endpoint)
