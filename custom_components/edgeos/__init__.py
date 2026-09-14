@@ -88,7 +88,8 @@ def _migrate_firmware_entity(hass: HomeAssistant, entry: ConfigEntry) -> None:
     old_entry = next(
         (
             entity
-            for entity in registry.async_entries_for_config_entry_id(entry.entry_id)
+            for entity in registry.entities.values()
+            if entity.config_entry_id == entry.entry_id
             if entity.unique_id == old_unique_id
         ),
         None,
