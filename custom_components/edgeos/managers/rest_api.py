@@ -315,14 +315,18 @@ class RestAPI:
 
                 response.raise_for_status()
 
-                logged_in = (
-                    self.beaker_session_id is not None
-                    and self.beaker_session_id == self.session_id
+                # EdgeOS 3.x no longer sets the beaker session cookie.
+                logged_in = response.status < 400 and (
+                    self.beaker_session_id is None
+                    or self.beaker_session_id == self.session_id
                 )
 
                 if logged_in:
                     html = await response.text()
                     html_lines = html.splitlines()
+                    self.data[API_DATA_SESSION_ID] = self.session_id
+                    self.data[API_DATA_COOKIES] = self._cookies
+
                     for line in html_lines:
                         if "EDGE.DeviceModel" in line:
                             line_parts = line.split(" = ")
@@ -330,12 +334,13 @@ class RestAPI:
                             self.data[API_DATA_PRODUCT] = value.replace(
                                 "'", EMPTY_STRING
                             )
-                            self.data[API_DATA_SESSION_ID] = self.session_id
-                            self.data[API_DATA_COOKIES] = self._cookies
 
                             self._set_status(ConnectivityStatus.Connected)
 
                             break
+
+                    if self.status != ConnectivityStatus.Connected:
+                        self._set_status(ConnectivityStatus.Connected)
                 else:
                     _LOGGER.error("Failed to login, Invalid credentials")
 
@@ -443,6 +448,10 @@ class RestAPI:
                 result_json = await self._async_get(API_URL_DATA, action=API_GET)
 
                 if result_json is not None:
+                    session_id = result_json.get(API_DATA_SESSION_ID)
+                    if session_id:
+                        self.data[API_DATA_SESSION_ID] = session_id
+
                     if RESPONSE_SUCCESS_KEY in result_json:
                         success_key = str(
                             result_json.get(RESPONSE_SUCCESS_KEY, "")
