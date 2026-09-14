@@ -67,6 +67,13 @@ _Configuration -> Integrations -> {Integration} -> Options_ <br />
 
 ## Components
 
+### Breaking change: firmware entity
+
+The firmware binary sensor is now an admin-only Update entity. Existing entity
+registry entries are migrated automatically. A reboot or disconnect after
+acceptance is treated as indeterminate until a refresh confirms the installed
+firmware version.
+
 ### System
 
 | Entity Name                         | Type          | Description                                                               | Additional information                        |
@@ -76,7 +83,7 @@ _Configuration -> Integrations -> {Integration} -> Options_ <br />
 | {Router Name} RAM                   | Sensor        | Represents RAM usage                                                      |                                               |
 | {Router Name} Uptime                | Sensor        | Represents last time the EdgeOS was restarted                             |                                               |
 | {Router Name} Unknown devices       | Sensor        | Represents number of devices leased by the DHCP server                    | Attributes holds the leased hostname and IPs  |
-| {Router Name} Firmware Updates      | Binary Sensor | New firmware available indication                                         | Attributes holds the url and new release name |
+| {Router Name} Firmware Update       | Update        | Reports installed/latest firmware and installs the device-reported update URL | Admin users only; completion is confirmed after refresh |
 | {Router Name} Log incoming messages | Switch        | Sets whether to log WebSocket incoming messages for debugging             |                                               |
 
 ### Per device

@@ -20,6 +20,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.components.switch import SwitchEntityDescription
+from homeassistant.components.update import UpdateEntityDescription
 from homeassistant.const import PERCENTAGE, EntityCategory, Platform, UnitOfTime
 from homeassistant.helpers.entity import EntityDescription
 
@@ -75,6 +76,13 @@ class IntegrationNumberEntityDescription(
     platform: Platform | None = Platform.NUMBER
 
 
+@dataclass(frozen=True, kw_only=True)
+class IntegrationUpdateEntityDescription(
+    UpdateEntityDescription, IntegrationEntityDescription
+):
+    platform: Platform | None = Platform.UPDATE
+
+
 ENTITY_DESCRIPTIONS: list[IntegrationEntityDescription] = [
     IntegrationSensorEntityDescription(
         key=EntityKeys.CPU_USAGE,
@@ -90,10 +98,10 @@ ENTITY_DESCRIPTIONS: list[IntegrationEntityDescription] = [
         icon="mdi:memory",
         device_type=DeviceTypes.SYSTEM,
     ),
-    IntegrationBinarySensorEntityDescription(
+    IntegrationUpdateEntityDescription(
         key=EntityKeys.FIRMWARE,
-        device_class=BinarySensorDeviceClass.UPDATE,
         device_type=DeviceTypes.SYSTEM,
+        entity_validation=EntityValidation.ADMIN_ONLY,
     ),
     IntegrationSensorEntityDescription(
         key=EntityKeys.LAST_RESTART,
