@@ -98,6 +98,11 @@ ENTITY_DESCRIPTIONS: list[IntegrationEntityDescription] = [
         icon="mdi:memory",
         device_type=DeviceTypes.SYSTEM,
     ),
+    IntegrationBinarySensorEntityDescription(
+        key=EntityKeys.FIRMWARE,
+        device_class=BinarySensorDeviceClass.UPDATE,
+        device_type=DeviceTypes.SYSTEM,
+    ),
     IntegrationUpdateEntityDescription(
         key=EntityKeys.FIRMWARE,
         device_type=DeviceTypes.SYSTEM,

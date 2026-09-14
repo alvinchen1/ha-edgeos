@@ -9,8 +9,6 @@ import sys
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_START
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
-
 from .common.consts import DEFAULT_NAME, DOMAIN
 from .common.entity_descriptions import PLATFORMS
 from .managers.config_manager import ConfigManager
@@ -30,7 +28,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     initialized = False
 
     try:
-        _migrate_firmware_entity(hass, entry)
         _LOGGER.debug("Setting up")
         entry_config = {key: entry.data[key] for key in entry.data}
 
@@ -77,26 +74,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     return initialized
-
-
-def _migrate_firmware_entity(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Remove the legacy firmware binary sensor from the entity registry."""
-    registry = er.async_get(hass)
-    old_unique_id = "edgeos_binary_sensor_firmware"
-
-    old_entry = next(
-        (
-            entity
-            for entity in registry.entities.values()
-            if entity.config_entry_id == entry.entry_id
-            if entity.unique_id == old_unique_id
-        ),
-        None,
-    )
-    if old_entry is None:
-        return
-
-    registry.async_remove(old_entry.entity_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
