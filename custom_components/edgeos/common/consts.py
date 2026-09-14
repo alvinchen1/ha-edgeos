@@ -111,6 +111,8 @@ API_URL_PARAMETER_SUBSET = "subset"
 API_URL_HEARTBEAT = "{base_url}?_={timestamp}"
 API_URL_DATA = "{base_url}/api/edge/{action}.json"
 API_URL_DATA_SUBSET = f"{API_URL_DATA}?data={{subset}}"
+API_URL_UPGRADE = "{base_url}/api/edge/upgrade.json?action={action}"
+API_URL_ACTION_URL_UPGRADE = "url_upgrade"
 
 TRUE_STR = "true"
 FALSE_STR = "false"

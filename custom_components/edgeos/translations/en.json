@@ -27,14 +27,16 @@
   },
   "entity": {
     "binary_sensor": {
-      "firmware": {
-        "name": "Firmware Upgrade"
-      },
       "interface_connected": {
         "name": "Connected"
       },
       "interface_status": {
         "name": "Status"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware Update"
       }
     },
     "device_tracker": {

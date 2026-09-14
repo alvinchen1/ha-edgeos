@@ -9,6 +9,7 @@ import sys
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_START
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 
 from .common.consts import DEFAULT_NAME, DOMAIN
 from .common.entity_descriptions import PLATFORMS
@@ -29,6 +30,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     initialized = False
 
     try:
+        _migrate_firmware_entity(hass, entry)
         _LOGGER.debug("Setting up")
         entry_config = {key: entry.data[key] for key in entry.data}
 
@@ -75,6 +77,31 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     return initialized
+
+
+def _migrate_firmware_entity(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Move the legacy firmware binary sensor to the firmware update entity."""
+    registry = er.async_get(hass)
+    old_unique_id = "edgeos_binary_sensor_firmware"
+    new_unique_id = "edgeos_update_firmware"
+
+    old_entry = next(
+        (
+            entity
+            for entity in er.async_entries_for_config_entry_id(hass, entry.entry_id)
+            if entity.unique_id == old_unique_id
+        ),
+        None,
+    )
+    if old_entry is None:
+        return
+
+    new_entity_id = f"update.{old_entry.entity_id.split('.', 1)[1]}"
+    registry.async_update_entity(
+        old_entry.entity_id,
+        new_entity_id=new_entity_id,
+        new_unique_id=new_unique_id,
+    )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
