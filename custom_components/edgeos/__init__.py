@@ -80,10 +80,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 def _migrate_firmware_entity(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Move the legacy firmware binary sensor to the firmware update entity."""
+    """Remove the legacy firmware binary sensor from the entity registry."""
     registry = er.async_get(hass)
     old_unique_id = "edgeos_binary_sensor_firmware"
-    new_unique_id = "edgeos_update_firmware"
 
     old_entry = next(
         (
@@ -97,12 +96,7 @@ def _migrate_firmware_entity(hass: HomeAssistant, entry: ConfigEntry) -> None:
     if old_entry is None:
         return
 
-    new_entity_id = f"update.{old_entry.entity_id.split('.', 1)[1]}"
-    registry.async_update_entity(
-        old_entry.entity_id,
-        new_entity_id=new_entity_id,
-        new_unique_id=new_unique_id,
-    )
+    registry.async_remove(old_entry.entity_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
