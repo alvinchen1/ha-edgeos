@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.2
+
+- Send URL-based firmware upgrade requests as form data, as expected by EdgeOS.
+- Include useful details from HTML error responses and expose the firmware download URL for diagnostics.
+
 ## 2.2.1
 
 - Fix the EdgeOS URL-based firmware upgrade request body.
