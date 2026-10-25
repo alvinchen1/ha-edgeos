@@ -27,14 +27,16 @@
   },
   "entity": {
     "binary_sensor": {
-      "firmware": {
-        "name": "Firmwareoppgradering"
-      },
       "interface_connected": {
         "name": "Tilkoblet"
       },
       "interface_status": {
         "name": "Status"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmwareoppdatering"
       }
     },
     "device_tracker": {

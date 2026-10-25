@@ -33,6 +33,7 @@ from ..common.consts import (
     ENTITY_CONFIG_ENTRY_ID,
     HA_NAME,
     HEARTBEAT_INTERVAL,
+    RELEASES_URL,
     SIGNAL_API_STATUS,
     SIGNAL_DATA_CHANGED,
     SIGNAL_DEVICE_ADDED,
@@ -40,8 +41,6 @@ from ..common.consts import (
     SIGNAL_SYSTEM_ADDED,
     SIGNAL_WS_STATUS,
     SUPPORTED_REMOVED_ENTITIES_DEVICE_TYPES,
-    SYSTEM_INFO_DATA_FW_LATEST_URL,
-    SYSTEM_INFO_DATA_FW_LATEST_VERSION,
     WS_RECONNECT_INTERVAL,
 )
 from ..common.entity_descriptions import PLATFORMS, IntegrationEntityDescription
@@ -356,6 +355,9 @@ class Coordinator(DataUpdateCoordinator):
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}")
 
+    async def async_install_firmware(self, url: str) -> None:
+        await self._api.async_install_firmware(url)
+
     def _build_data_mapping(self):
         _LOGGER.debug("Building data mappers")
 
@@ -520,8 +522,10 @@ class Coordinator(DataUpdateCoordinator):
         result = {
             ATTR_IS_ON: data.upgrade_available,
             ATTR_ATTRIBUTES: {
-                SYSTEM_INFO_DATA_FW_LATEST_URL: data.upgrade_url,
-                SYSTEM_INFO_DATA_FW_LATEST_VERSION: data.upgrade_version,
+                "installed_version": data.fw_version,
+                "latest_version": data.upgrade_version,
+                "release_url": data.upgrade_release_url or RELEASES_URL,
+                "firmware_url": data.upgrade_url,
             },
         }
 

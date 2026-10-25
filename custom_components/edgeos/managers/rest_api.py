@@ -4,8 +4,10 @@ from asyncio import sleep
 from datetime import datetime, timedelta
 import json
 import logging
+import re
 import sys
 from typing import Any
+from xml.etree import ElementTree
 
 from aiohttp import ClientSession, CookieJar
 
@@ -21,19 +23,23 @@ from ..common.consts import (
     API_DATA_INTERFACES,
     API_DATA_LAST_UPDATE,
     API_DATA_PRODUCT,
+    API_DATA_RELEASE_URL,
     API_DATA_SAVE,
     API_DATA_SESSION_ID,
+    API_DATA_SYS_INFO,
     API_DATA_SYSTEM,
     API_DELETE,
     API_GET,
     API_SET,
     API_URL_DATA,
     API_URL_DATA_SUBSET,
+    API_URL_ACTION_URL_UPGRADE,
     API_URL_HEARTBEAT,
     API_URL_PARAMETER_ACTION,
     API_URL_PARAMETER_BASE_URL,
     API_URL_PARAMETER_SUBSET,
     API_URL_PARAMETER_TIMESTAMP,
+    API_URL_UPGRADE,
     COOKIE_BEAKER_SESSION_ID,
     COOKIE_CSRF_TOKEN,
     COOKIE_PHPSESSID,
@@ -42,6 +48,7 @@ from ..common.consts import (
     HEADER_CSRF_TOKEN,
     HEARTBEAT_MAX_AGE,
     MAXIMUM_RECONNECT,
+    RELEASES_RSS_URL,
     RESPONSE_ERROR_KEY,
     RESPONSE_FAILURE_CODE,
     RESPONSE_OUTPUT,
@@ -53,10 +60,12 @@ from ..common.consts import (
     SYSTEM_DATA_DISABLE,
     TRUE_STR,
     UPDATE_DATE_ENDPOINTS,
+    SYSTEM_INFO_DATA_FW_LATEST,
+    SYSTEM_INFO_DATA_FW_LATEST_VERSION,
 )
 from ..models.config_data import ConfigData
 from ..models.edge_os_interface_data import EdgeOSInterfaceData
-from ..models.exceptions import SessionTerminatedException
+from ..models.exceptions import FirmwareUpgradeError, SessionTerminatedException
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -109,6 +118,63 @@ class RestAPI:
         result = self._session is not None
 
         return result
+
+    async def _load_release_url(self) -> None:
+        """Load the latest EdgeRouter release announcement from Ubiquiti RSS."""
+        try:
+            if self._session is None:
+                return
+
+            self.data.pop(API_DATA_RELEASE_URL, None)
+
+            async with self._session.get(RELEASES_RSS_URL, ssl=False) as response:
+                response.raise_for_status()
+                rss_data = await response.text()
+
+            root = ElementTree.fromstring(rss_data)
+            item = root.find("./channel/item")
+            release_link = item.find("link") if item is not None else None
+            release_title = item.find("title") if item is not None else None
+            system_info = self.data.get(API_DATA_SYS_INFO, {})
+            latest_data = (
+                system_info.get(SYSTEM_INFO_DATA_FW_LATEST, {})
+                if isinstance(system_info, dict)
+                else {}
+            )
+            latest_firmware = (
+                latest_data.get(SYSTEM_INFO_DATA_FW_LATEST_VERSION)
+                if isinstance(latest_data, dict)
+                else None
+            )
+            rss_version = (
+                re.search(
+                    r"(?<!\d)v?(\d+(?:\.\d+)+(?:-[A-Za-z0-9.-]+)?)\b",
+                    release_title.text,
+                ).group(1)
+                if release_title is not None and release_title.text
+                else None
+            )
+
+            if (
+                release_link is not None
+                and release_link.text
+                and latest_firmware
+                and rss_version
+                and str(latest_firmware).lstrip("v") == rss_version
+            ):
+                self.data[API_DATA_RELEASE_URL] = release_link.text.strip()
+            elif latest_firmware and rss_version:
+                _LOGGER.warning(
+                    "Ubiquiti release RSS version %s does not match latest firmware %s",
+                    rss_version,
+                    latest_firmware,
+                )
+            else:
+                _LOGGER.warning(
+                    "Ubiquiti release RSS did not contain a matching latest release"
+                )
+        except Exception as ex:
+            _LOGGER.warning("Failed to load Ubiquiti release RSS: %s", ex)
 
     @property
     def status(self) -> str | None:
@@ -291,6 +357,7 @@ class RestAPI:
             for endpoint in UPDATE_DATE_ENDPOINTS:
                 await self._load_general_data(endpoint)
 
+            await self._load_release_url()
             self.data[API_DATA_LAST_UPDATE] = datetime.now().isoformat()
 
             self._async_dispatcher_send(SIGNAL_DATA_CHANGED)
@@ -538,4 +605,21 @@ class RestAPI:
         if not modified:
             _LOGGER.error(
                 f"Failed to set state of interface {interface.name} to {is_enabled}"
+            )
+
+    async def async_install_firmware(self, url: str) -> None:
+        """Request an EdgeOS URL firmware upgrade using the authenticated session."""
+        result = await self._async_post(
+            API_URL_UPGRADE,
+            {"url": url},
+            action=API_URL_ACTION_URL_UPGRADE,
+        )
+        response = result or {}
+        success = str(response.get(RESPONSE_SUCCESS_KEY, "")).lower()
+        if success not in {"1", TRUE_STR}:
+            error = response.get(
+                RESPONSE_ERROR_KEY, "EdgeOS rejected the firmware upgrade"
+            )
+            raise FirmwareUpgradeError(
+                f"EdgeOS firmware upgrade request failed: {error}"
             )
