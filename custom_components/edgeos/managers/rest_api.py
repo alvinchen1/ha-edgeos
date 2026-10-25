@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from asyncio import sleep
 from datetime import datetime, timedelta
+from html import unescape
 import json
 import logging
 import re
 import sys
 from typing import Any
+from urllib.parse import urlencode
 from xml.etree import ElementTree
 
 from aiohttp import ClientSession, CookieJar
@@ -326,6 +328,7 @@ class RestAPI:
         action: str | None = None,
         raise_errors: bool = False,
         request_body: str | None = None,
+        content_type: str = "application/json",
     ):
         result = None
         response_error = None
@@ -335,7 +338,7 @@ class RestAPI:
 
             if self._session is not None:
                 headers = self._get_post_headers()
-                headers["Content-Type"] = "application/json"
+                headers["Content-Type"] = content_type
                 data_json = (
                     request_body if request_body is not None else json.dumps(data)
                 )
@@ -356,7 +359,22 @@ class RestAPI:
                                 "errors"
                             )
                         elif error_response:
-                            response_error = error_response
+                            if isinstance(error_response, str):
+                                pre_match = re.search(
+                                    r"<pre[^>]*>(.*?)</pre>",
+                                    error_response,
+                                    flags=re.IGNORECASE | re.DOTALL,
+                                )
+                                details = (
+                                    pre_match.group(1)
+                                    if pre_match
+                                    else re.sub(r"<[^>]+>", " ", error_response)
+                                )
+                                response_error = " ".join(
+                                    unescape(details).split()
+                                )[:1500]
+                            else:
+                                response_error = error_response
 
                     response.raise_for_status()
 
@@ -368,7 +386,7 @@ class RestAPI:
 
             message = f"Endpoint: {endpoint}, Error: {ex}, Line: {line_number}"
             if response_error is not None:
-                message += f", Device response: {str(response_error)[:500]}"
+                message += f", Device response: {str(response_error)[:1500]}"
 
             _LOGGER.warning(f"Request failed, {message}")
             if raise_errors:
@@ -640,14 +658,13 @@ class RestAPI:
 
     async def async_install_firmware(self, url: str) -> None:
         """Request an EdgeOS URL firmware upgrade using the authenticated session."""
-        encoded_url = json.dumps(url, ensure_ascii=False)[1:-1].replace("'", "\\'")
-        request_body = f"{{ url: '{encoded_url}'}}"
         result = await self._async_post(
             API_URL_UPGRADE,
-            None,
+            {"url": url},
             action=API_URL_ACTION_URL_UPGRADE,
             raise_errors=True,
-            request_body=request_body,
+            request_body=urlencode({"url": url}),
+            content_type="application/x-www-form-urlencoded",
         )
         response = result or {}
         success = str(response.get(RESPONSE_SUCCESS_KEY, "")).lower()

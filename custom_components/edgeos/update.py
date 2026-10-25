@@ -79,6 +79,9 @@ class IntegrationUpdateEntity(IntegrationBaseEntity, UpdateEntity):
         self._attr_latest_version = attributes.get("latest_version")
         self._attr_release_url = attributes.get("release_url")
         self._firmware_url = attributes.get("firmware_url")
+        self._attr_extra_state_attributes = {
+            "firmware_download_url": self._firmware_url
+        }
 
         if (
             self._install_pending
