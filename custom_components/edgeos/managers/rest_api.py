@@ -325,8 +325,10 @@ class RestAPI:
         data,
         action: str | None = None,
         raise_errors: bool = False,
+        request_body: str | None = None,
     ):
         result = None
+        response_error = None
 
         try:
             url = self._build_endpoint(endpoint, action=action)
@@ -334,11 +336,28 @@ class RestAPI:
             if self._session is not None:
                 headers = self._get_post_headers()
                 headers["Content-Type"] = "application/json"
-                data_json = json.dumps(data)
+                data_json = (
+                    request_body if request_body is not None else json.dumps(data)
+                )
 
                 async with self._session.post(
                     url, headers=headers, data=data_json, ssl=False
                 ) as response:
+                    if raise_errors and response.status >= 400:
+                        try:
+                            error_response = await response.json(content_type=None)
+                        except ValueError:
+                            error_response = await response.text()
+
+                        if isinstance(error_response, dict):
+                            response_error = error_response.get(
+                                RESPONSE_ERROR_KEY
+                            ) or error_response.get("message") or error_response.get(
+                                "errors"
+                            )
+                        elif error_response:
+                            response_error = error_response
+
                     response.raise_for_status()
 
                     result = await response.json()
@@ -348,6 +367,9 @@ class RestAPI:
             line_number = tb.tb_lineno
 
             message = f"Endpoint: {endpoint}, Error: {ex}, Line: {line_number}"
+            if response_error is not None:
+                message += f", Device response: {str(response_error)[:500]}"
+
             _LOGGER.warning(f"Request failed, {message}")
             if raise_errors:
                 raise FirmwareUpgradeError(message) from ex
@@ -618,11 +640,14 @@ class RestAPI:
 
     async def async_install_firmware(self, url: str) -> None:
         """Request an EdgeOS URL firmware upgrade using the authenticated session."""
+        encoded_url = json.dumps(url, ensure_ascii=False)[1:-1].replace("'", "\\'")
+        request_body = f"{{ url: '{encoded_url}'}}"
         result = await self._async_post(
             API_URL_UPGRADE,
-            {"url": url},
+            None,
             action=API_URL_ACTION_URL_UPGRADE,
             raise_errors=True,
+            request_body=request_body,
         )
         response = result or {}
         success = str(response.get(RESPONSE_SUCCESS_KEY, "")).lower()

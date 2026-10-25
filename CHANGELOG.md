@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.1
+
+- Fix the EdgeOS URL-based firmware upgrade request body.
+- Clear the update entity's in-progress state when an installation request fails.
+
 ## 2.1.9
 
 - Initialize data using `async_request_refresh` instead of `async_config_entry_first_refresh` to remove warning message
