@@ -75,6 +75,14 @@ _Configuration -> Integrations -> {Integration} -> Options_ <br />
 
 ## Components
 
+### Firmware updates
+
+The existing firmware binary sensor remains available alongside an admin-only
+standard Update entity. The update installs the firmware URL reported by the
+router and uses the latest EdgeRouter release link from Ubiquiti's RSS feed for
+release information. The router can reboot or disconnect after accepting a
+request, so completion is confirmed after a refresh reports the installed
+firmware version.
 ### System
 
 | Entity Name                         | Type          | Description                                                               | Additional information                        |
