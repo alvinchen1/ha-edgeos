@@ -1,18 +1,16 @@
 # EdgeOS
 
-## Maintenance Notice
+## Project lineage and maintenance
 
-This integration is no longer actively developed, as I no longer have access to my ER4 for testing.  
-However, I will review and approve community contributions (issues and pull requests) if they are tested and confirmed to work.  
-
-If you rely on this integration, please consider contributing fixes and improvements.  
-pull requests are welcome!
+This repository is maintained by [@alvinchen1](https://github.com/alvinchen1).
+The integration was originally created by [@elad-bar](https://github.com/elad-bar);
+this repository continues that work and preserves credit for the original project.
 
 ## Description
 
 Provides an integration between EdgeOS (Ubiquiti) routers to Home Assistant.
 
-[Changelog](https://github.com/elad-bar/ha-edgeos/blob/master/CHANGELOG.md)
+[Changelog](https://github.com/alvinchen1/ha-edgeos/blob/master/CHANGELOG.md)
 
 ## How to
 
@@ -77,12 +75,9 @@ _Configuration -> Integrations -> {Integration} -> Options_ <br />
 
 ### Firmware updates
 
-The existing firmware binary sensor remains available alongside an admin-only
-standard Update entity. The update installs the firmware URL reported by the
-router and uses the latest EdgeRouter release link from Ubiquiti's RSS feed for
-release information. The router can reboot or disconnect after accepting a
-request, so completion is confirmed after a refresh reports the installed
-firmware version.
+Firmware updates use the admin-only standard Update entity. After EdgeOS accepts
+the firmware, the integration requests a reboot and confirms completion when a
+refresh reports the new installed version.
 ### System
 
 | Entity Name                         | Type          | Description                                                               | Additional information                        |
@@ -90,10 +85,9 @@ firmware version.
 | {Router Name} Unit                  | Select        | Sets whether to monitor device and create all the components below or not |                                               |
 | {Router Name} CPU                   | Sensor        | Represents CPU usage                                                      |                                               |
 | {Router Name} RAM                   | Sensor        | Represents RAM usage                                                      |                                               |
-| {Router Name} Uptime                | Sensor        | Represents last time the EdgeOS was restarted                             |                                               |
+| {Router Name} Last restart           | Sensor        | Date and time the EdgeOS last restarted                                   | Changes only when a reboot is detected        |
 | {Router Name} Unknown devices       | Sensor        | Represents number of devices leased by the DHCP server                    | Attributes holds the leased hostname and IPs  |
-| {Router Name} Firmware Updates      | Binary Sensor | New firmware available indication                                          | Attributes holds the url and new release name |
-| {Router Name} Firmware Update        | Update        | Reports installed/latest firmware and installs the device-reported firmware | The firmware binary sensor remains available alongside a standard admin-only Update entity. Existing installations retain the binary sensor and receive the new update entity. Release notes and announcements use the latest EdgeRouter release link from Ubiquiti's RSS feed. The router can reboot or disconnect after accepting an update, so completion is confirmed after a refresh. |
+| {Router Name} Firmware Update       | Update        | Reports installed/latest firmware and installs the device-reported firmware | Reboots the router after EdgeOS accepts the update |
 | {Router Name} Log incoming messages | Switch        | Sets whether to log WebSocket incoming messages for debugging             |                                               |
 
 ### Per device
@@ -143,7 +137,8 @@ logger:
 
 In Settings -> Devices & services, look for the device, click on the 3 dots menu and download diagnostic file,
 
-Diagnostic file contains sensitive details, go over it and clean it or send it directly to my [email](elad.bar@hotmail)
+Diagnostic files may contain sensitive details. Review and redact them before
+sharing in the [repository issue tracker](https://github.com/alvinchen1/ha-edgeos/issues).
 
 ### Known issues and workarounds
 

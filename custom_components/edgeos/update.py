@@ -45,7 +45,9 @@ class IntegrationUpdateEntity(IntegrationBaseEntity, UpdateEntity):
         super().__init__(hass, entity_description, coordinator, device_type, item_id)
         self._install_pending = False
         self._pending_version: str | None = None
+        self._starting_version: str | None = None
         self._firmware_url: str | None = None
+        self._reboot_required = False
 
     @property
     def in_progress(self) -> bool:
@@ -60,33 +62,64 @@ class IntegrationUpdateEntity(IntegrationBaseEntity, UpdateEntity):
             raise ValueError("EdgeOS did not provide a firmware download URL")
 
         self._install_pending = True
-        self._pending_version = version
+        self._pending_version = version or self._attr_latest_version
+        self._starting_version = self._attr_installed_version
         self.async_write_ha_state()
 
+        firmware_staged = False
         try:
             await self.coordinator.async_install_firmware(self._firmware_url)
+            firmware_staged = True
+            self._set_reboot_required(True)
+            self.async_write_ha_state()
+            _LOGGER.info("Firmware staged successfully; rebooting EdgeOS device")
+            await self.coordinator.async_reboot()
         except Exception:
             self._install_pending = False
-            self._pending_version = None
-            _LOGGER.exception("EdgeOS firmware upgrade request failed")
+            if not firmware_staged:
+                self._pending_version = None
+                self._starting_version = None
+                self._set_reboot_required(False)
+            _LOGGER.exception("EdgeOS firmware upgrade or automatic reboot failed")
             self.async_write_ha_state()
             raise
+
+    def _set_reboot_required(self, required: bool) -> None:
+        self._reboot_required = required
+        self._attr_extra_state_attributes = {
+            "firmware_download_url": self._firmware_url,
+            "reboot_required": required,
+        }
 
     def update_component(self, data):
         data = data or {}
         attributes = data.get(ATTR_ATTRIBUTES, {})
         self._attr_installed_version = attributes.get("installed_version")
-        self._attr_latest_version = attributes.get("latest_version")
+        update_available = data.get("is_on", False)
+        self._attr_latest_version = (
+            attributes.get("latest_version")
+            if update_available
+            else self._attr_installed_version
+        )
         self._attr_release_url = attributes.get("release_url")
-        self._firmware_url = attributes.get("firmware_url")
-        self._attr_extra_state_attributes = {
-            "firmware_download_url": self._firmware_url
-        }
+        self._firmware_url = (
+            attributes.get("firmware_url") if update_available else None
+        )
 
+        version_confirmed = (
+            self._attr_installed_version == self._pending_version
+            if self._pending_version
+            else bool(self._starting_version)
+            and self._attr_installed_version != self._starting_version
+        )
         if (
-            self._install_pending
-            and self._pending_version
-            and self._attr_installed_version == self._pending_version
+            self._reboot_required
+            and self._attr_installed_version
+            and version_confirmed
         ):
             self._install_pending = False
             self._pending_version = None
+            self._starting_version = None
+            self._set_reboot_required(False)
+        else:
+            self._set_reboot_required(self._reboot_required)

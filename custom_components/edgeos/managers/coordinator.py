@@ -360,6 +360,9 @@ class Coordinator(DataUpdateCoordinator):
     async def async_install_firmware(self, url: str) -> None:
         await self._api.async_install_firmware(url)
 
+    async def async_reboot(self) -> None:
+        await self._api.async_reboot()
+
     def _build_data_mapping(self):
         _LOGGER.debug("Building data mappers")
 

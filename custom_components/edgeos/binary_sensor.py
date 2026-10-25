@@ -4,11 +4,13 @@ from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ICON, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
+from homeassistant.util import slugify
 
 from .common.base_entity import IntegrationBaseEntity, async_setup_base_entry
-from .common.consts import ATTR_ATTRIBUTES, ATTR_IS_ON
+from .common.consts import ATTR_ATTRIBUTES, ATTR_IS_ON, DOMAIN
 from .common.entity_descriptions import IntegrationBinarySensorEntityDescription
-from .common.enums import DeviceTypes
+from .common.enums import DeviceTypes, EntityKeys
 from .managers.coordinator import Coordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,6 +19,19 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ):
+    entity_registry = er.async_get(hass)
+    firmware_unique_id = slugify(
+        f"{DOMAIN}_{Platform.BINARY_SENSOR}_{EntityKeys.FIRMWARE}"
+    )
+    firmware_entity_id = entity_registry.async_get_entity_id(
+        Platform.BINARY_SENSOR, DOMAIN, firmware_unique_id
+    )
+    if firmware_entity_id:
+        _LOGGER.debug(
+            "Removing deprecated firmware binary sensor %s", firmware_entity_id
+        )
+        entity_registry.async_remove(firmware_entity_id)
+
     await async_setup_base_entry(
         hass,
         entry,

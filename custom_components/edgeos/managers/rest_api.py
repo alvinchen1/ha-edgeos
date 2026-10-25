@@ -33,10 +33,11 @@ from ..common.consts import (
     API_DELETE,
     API_GET,
     API_SET,
+    API_URL_ACTION_URL_UPGRADE,
     API_URL_DATA,
     API_URL_DATA_SUBSET,
-    API_URL_ACTION_URL_UPGRADE,
     API_URL_HEARTBEAT,
+    API_URL_OPERATION_REBOOT,
     API_URL_PARAMETER_ACTION,
     API_URL_PARAMETER_BASE_URL,
     API_URL_PARAMETER_SUBSET,
@@ -328,7 +329,7 @@ class RestAPI:
         action: str | None = None,
         raise_errors: bool = False,
         request_body: str | None = None,
-        content_type: str = "application/json",
+        content_type: str | None = "application/json",
     ):
         result = None
         response_error = None
@@ -338,7 +339,8 @@ class RestAPI:
 
             if self._session is not None:
                 headers = self._get_post_headers()
-                headers["Content-Type"] = content_type
+                if content_type is not None:
+                    headers["Content-Type"] = content_type
                 data_json = (
                     request_body if request_body is not None else json.dumps(data)
                 )
@@ -675,3 +677,23 @@ class RestAPI:
             raise FirmwareUpgradeError(
                 f"EdgeOS firmware upgrade request failed: {error}"
             )
+
+    async def async_reboot(self) -> None:
+        """Request a device reboot using the authenticated session."""
+        result = await self._async_post(
+            API_URL_OPERATION_REBOOT,
+            None,
+            raise_errors=True,
+            request_body="",
+            content_type=None,
+        )
+        response = result or {}
+        operation = response.get("OPERATION")
+        if not isinstance(operation, dict):
+            operation = {}
+        success = str(operation.get(RESPONSE_SUCCESS_KEY, "")).lower()
+        if success not in {"1", TRUE_STR}:
+            error = operation.get(
+                RESPONSE_ERROR_KEY, "EdgeOS rejected the reboot request"
+            )
+            raise FirmwareUpgradeError(f"EdgeOS reboot request failed: {error}")

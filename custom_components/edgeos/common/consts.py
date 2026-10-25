@@ -47,7 +47,7 @@ ADD_COMPONENT_SIGNALS = [
 MAXIMUM_RECONNECT = 3
 CONFIGURATION_FILE = f"{DOMAIN}.config.json"
 
-INVALID_TOKEN_SECTION = "https://github.com/elad-bar/ha-edgeos#invalid-token"
+INVALID_TOKEN_SECTION = "https://github.com/alvinchen1/ha-edgeos#invalid-token"
 
 API_URL_TEMPLATE = "https://{}"
 WEBSOCKET_URL_TEMPLATE = "wss://{}/ws/stats"
@@ -119,6 +119,7 @@ API_URL_DATA = "{base_url}/api/edge/{action}.json"
 API_URL_DATA_SUBSET = f"{API_URL_DATA}?data={{subset}}"
 API_URL_UPGRADE = "{base_url}/api/edge/upgrade.json?action={action}"
 API_URL_ACTION_URL_UPGRADE = "url_upgrade"
+API_URL_OPERATION_REBOOT = "{base_url}/api/edge/operation/reboot.json"
 
 TRUE_STR = "true"
 FALSE_STR = "false"

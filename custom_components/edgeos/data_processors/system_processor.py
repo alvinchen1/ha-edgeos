@@ -168,14 +168,16 @@ class SystemProcessor(BaseProcessor):
                 system_data.fw_version = discovered_fw_version
             system_data.product = discovery_data.get(DISCOVER_DATA_PRODUCT)
 
-            uptime = float(system_stats_data.get(SYSTEM_STATS_DATA_UPTIME, 0))
-
             system_data.cpu = int(system_stats_data.get(SYSTEM_STATS_DATA_CPU, 0))
             system_data.mem = int(system_stats_data.get(SYSTEM_STATS_DATA_MEM, 0))
 
-            if uptime != system_data.uptime:
+            uptime_value = system_stats_data.get(SYSTEM_STATS_DATA_UPTIME)
+            if uptime_value is not None:
+                uptime = float(uptime_value)
+                if system_data.uptime is None or uptime < system_data.uptime:
+                    system_data.last_reset = self._get_last_reset(uptime)
+
                 system_data.uptime = uptime
-                system_data.last_reset = self._get_last_reset(uptime)
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()

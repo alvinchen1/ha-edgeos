@@ -1,7 +1,7 @@
 """
 This component provides support for EdgeOS based devices.
 For more details about this component, please refer to the documentation at
-https://github.com/elad-bar/ha-EdgeOS
+https://github.com/alvinchen1/ha-edgeos
 """
 import logging
 import sys

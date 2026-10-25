@@ -4,7 +4,10 @@
 
 Provides an integration between EdgeOS (Ubiquiti) routers to Home Assistant.
 
-[Changelog](https://github.com/elad-bar/ha-edgeos/blob/master/CHANGELOG.md)
+[Changelog](https://github.com/alvinchen1/ha-edgeos/blob/master/CHANGELOG.md)
+
+Originally created by [@elad-bar](https://github.com/elad-bar); this repository
+continues that work and preserves credit for the original project.
 
 ## How to
 
@@ -69,11 +72,9 @@ _Configuration -> Integrations -> {Integration} -> Options_ <br />
 
 ### Firmware updates
 
-The existing firmware binary sensor remains available, and an admin-only
-standard Update entity is also provided for installing the firmware URL reported
-by the router. Release information uses the latest EdgeRouter release link from
-Ubiquiti's RSS feed. A reboot or disconnect after acceptance is treated as
-indeterminate until a refresh confirms the installed firmware version.
+Firmware updates use the admin-only standard Update entity. After EdgeOS accepts
+the firmware, the integration requests a reboot and confirms completion when a
+refresh reports the new installed version.
 
 ### System
 
@@ -82,10 +83,9 @@ indeterminate until a refresh confirms the installed firmware version.
 | {Router Name} Unit                  | Select        | Sets whether to monitor device and create all the components below or not |                                               |
 | {Router Name} CPU                   | Sensor        | Represents CPU usage                                                      |                                               |
 | {Router Name} RAM                   | Sensor        | Represents RAM usage                                                      |                                               |
-| {Router Name} Uptime                | Sensor        | Represents last time the EdgeOS was restarted                             |                                               |
+| {Router Name} Last restart          | Sensor        | Date and time the EdgeOS last restarted                                   | Changes only when a reboot is detected        |
 | {Router Name} Unknown devices       | Sensor        | Represents number of devices leased by the DHCP server                    | Attributes holds the leased hostname and IPs  |
-| {Router Name} Firmware Updates      | Binary Sensor | Indicates when new firmware is available                                    | Attributes include the firmware URL and latest version |
-| {Router Name} Firmware Update       | Update        | Reports installed/latest firmware and installs the device-reported update URL | Admin users only; completion is confirmed after refresh |
+| {Router Name} Firmware Update       | Update        | Reports installed/latest firmware and installs the device-reported update URL | Reboots the router after EdgeOS accepts the update |
 | {Router Name} Log incoming messages | Switch        | Sets whether to log WebSocket incoming messages for debugging             |                                               |
 
 ### Per device

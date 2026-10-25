@@ -1,9 +1,21 @@
 # Changelog
 
+This fork continues the integration originally created by
+[@elad-bar](https://github.com/elad-bar). Historical issue and pull request
+links below refer to the original project.
+
 ## 2.2.2
 
 - Send URL-based firmware upgrade requests as form data, as expected by EdgeOS.
 - Include useful details from HTML error responses and expose the firmware download URL for diagnostics.
+
+## 2.2.3
+
+- Automatically reboot the router after EdgeOS accepts a firmware update.
+- Remove the deprecated firmware binary sensor and clean up its existing entity.
+- Keep the last-restart timestamp stable until a reboot is detected.
+- Avoid showing a firmware update when EdgeOS reports that the router is up to date.
+- Point active project and update metadata to this repository while preserving original-project credit.
 
 ## 2.2.1
 
