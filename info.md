@@ -67,11 +67,13 @@ _Configuration -> Integrations -> {Integration} -> Options_ <br />
 
 ## Components
 
-### Firmware entities
+### Firmware updates
 
-The firmware binary sensor remains available alongside an admin-only Update
-entity. A reboot or disconnect after acceptance is treated as indeterminate
-until a refresh confirms the installed firmware version.
+The existing firmware binary sensor remains available, and an admin-only
+standard Update entity is also provided for installing the firmware URL reported
+by the router. Release information uses the latest EdgeRouter release link from
+Ubiquiti's RSS feed. A reboot or disconnect after acceptance is treated as
+indeterminate until a refresh confirms the installed firmware version.
 
 ### System
 
@@ -82,6 +84,7 @@ until a refresh confirms the installed firmware version.
 | {Router Name} RAM                   | Sensor        | Represents RAM usage                                                      |                                               |
 | {Router Name} Uptime                | Sensor        | Represents last time the EdgeOS was restarted                             |                                               |
 | {Router Name} Unknown devices       | Sensor        | Represents number of devices leased by the DHCP server                    | Attributes holds the leased hostname and IPs  |
+| {Router Name} Firmware Updates      | Binary Sensor | Indicates when new firmware is available                                    | Attributes include the firmware URL and latest version |
 | {Router Name} Firmware Update       | Update        | Reports installed/latest firmware and installs the device-reported update URL | Admin users only; completion is confirmed after refresh |
 | {Router Name} Log incoming messages | Switch        | Sets whether to log WebSocket incoming messages for debugging             |                                               |
 
