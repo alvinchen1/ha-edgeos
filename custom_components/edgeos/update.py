@@ -66,6 +66,8 @@ class IntegrationUpdateEntity(IntegrationBaseEntity, UpdateEntity):
         try:
             await self.coordinator.async_install_firmware(self._firmware_url)
         except Exception:
+            self._install_pending = False
+            self._pending_version = None
             _LOGGER.exception("EdgeOS firmware upgrade request failed")
             self.async_write_ha_state()
             raise
